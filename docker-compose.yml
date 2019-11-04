@@ -1,0 +1,48 @@
+version: '3.4'
+services:
+  swoft:
+    image: swoft/swoft
+#    for local develop
+#    command: php -S 127.0.0.1:13300
+    container_name: swoft-srv
+    environment:                            # 环境变量
+      - APP_ENV=dev
+      - TIMEZONE=Asia/Shanghai
+    restart: always
+    depends_on:                             #依赖，含义：启动mysql容器 和 redis 容器后 启动 swoft 容器
+      - mysql
+      - redis
+    ports:                                  #端口映射   hostPort/localPort
+      - "4450:18306"
+      - "18307:18307"
+      - "18308:18308"
+      - "12346:18309"
+    links:                                   #连接   链接其他容器
+      - mysql:mysql
+      - redis:redis
+    volumes:                                #挂载.  目录挂载的路径，volumes_from 可以指定挂载的容器
+      - ./:/var/www/swoft
+      # - ./runtime/ng-conf:/etc/nginx
+      # - ./runtime/logs:/var/log
+    command: /bin/bash
+#      - php /var/www/project/swoft/bin/swoft tcp:start
+
+  mysql:
+    image: mysql
+    container_name: mysql-srv
+    environment:
+      - MYSQL_ROOT_PASSWORD=Gpf_1039355112  #使用强类型密码 避免出现 错误The server requested authentication method unknown to the client
+    ports:
+      - "13306:3306"
+    volumes:
+      - ./runtime/data/mysql:/var/lib/mysql
+    restart: always
+
+  redis:
+    container_name: redis-srv
+    image: redis:4-alpine
+    ports:
+      - "16379:6379"
+    sysctls:                                #内核参数
+      net.core.somaxconn: 65535             #最大连接数
+    restart: always
